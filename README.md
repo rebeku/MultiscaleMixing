@@ -1,6 +1,6 @@
 # MultiscaleMixing
 
-see Multiscale mixing example.ipynb for example usage
+Doing some experiments with multiscale mixing.  Repo forked from:
 
 basic documentation [here](https://piratepeel.github.io/MultiscaleMixing/)
 
