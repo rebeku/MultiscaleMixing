@@ -12,7 +12,7 @@ import networkx as nx
 
 
 def localAssortF(edgelist, node_attr, pr=np.arange(0., 1., 0.1), undir=True,
-                 missingValue=-1):
+                 missingValue=-1, weight_a=False):
     """Calculate the multiscale assortativity.
 
     Parameters
@@ -104,20 +104,31 @@ def localAssortF(edgelist, node_attr, pr=np.arange(0., 1., 0.1), undir=True,
                                          np.arange(n)[hasAttribute])),
                                         shape=(c, n)).tocsr()
 
-                trace_e = (YPI.dot(WY).toarray()).trace()
-                assortM[i, ii] = trace_e
+                e = YPI.dot(WY).toarray()
+                assortM[i, ii] = e.trace()
+                
+                if weight_a:
+                    a2 = (e.sum(axis=1)**2).sum()
+                    assortM[i, ii] -= a2
 
         YPI = sparse.coo_matrix((ti[hasAttribute], (node_attr[hasAttribute],
                                 np.arange(n)[hasAttribute])),
                                 shape=(c, n)).tocsr()
+
         e_gh = (YPI @ WY).toarray()
         e_gh_sum = e_gh.sum()
         Z[i] = e_gh_sum
         e_gh /= e_gh_sum
         trace_e = e_gh.trace()
         assortT[i] = trace_e
+        
+        if weight_a:
+            a2 = (e_gh.sum(axis=1)**2).sum()
+            assortT[i] -= a2
 
-    assortT -= ab_glob
+    if not weight_a:
+        assortT -= ab_glob
+
     np.divide(assortT, 1.-ab_glob, out=assortT, where=ab_glob != 0)
 
     if len(pr) > 1:
