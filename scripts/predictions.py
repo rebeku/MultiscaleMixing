@@ -96,7 +96,7 @@ def generate_dc_sbm(B, theta, Z, N, rng):
     A = np.zeros((N,N), dtype=int)
     choices = rng.uniform(size=N*(N-1)//2)
 
-    # probabilities for each pair of nodes
+    # probabilities for an edge between each pair of nodes
     theta = np.diag(theta)
     p = (theta @ Z @ B @ Z.T @ theta)
     assert p.max() < 1, p.max()
@@ -209,25 +209,27 @@ def run_simulation(
         Z.sum(axis=0), 
         y.mean(axis=0),
         y.std(axis=0),
-        fmt="o"
+        fmt="P"
     )
 
     plt.legend(["Predicted", "Observed"])
     plt.xlabel("Class Size")
     plt.ylabel("$r(\ell)$")
 
-    if pr_in > pr_outt:
+    if pr_in > pr_out:
         title = f"Assortative: N={N}, {n_trials} Trials"
+        fname = f"images/assortative_N_{N}_trials_{n_trials}.png"
     else:
         title = f"Disassortative: N={N}, {n_trials} Trials"
+        fname = f"images/disassortative_N_{N}_trials_{n_trials}.png"
 
     plt.title(title)
-    plt.savefig(f"images/N_{N}_trials_{n_trials}.png")
+    plt.savefig(fname)
     print(f"Saved figure {title}")
 
 
 if __name__=="__main__":
-    Ns = [100,500,1000,5000]
+    Ns = [100,200,500,1000,5000]
     n_trials = 50
     C = 10 # number of blocks
     gamma = 2.5 # coefficient for modified power law
@@ -238,7 +240,7 @@ if __name__=="__main__":
 
     rng = np.random.default_rng(11235811)
 
-    for N in range(Ns): 
+    for N in Ns: 
         start = datetime.now()
         run_simulation(N, C, gamma, k_0, n_trials, pr_big, pr_small, rng)
         seconds = (datetime.now() - start).total_seconds()
