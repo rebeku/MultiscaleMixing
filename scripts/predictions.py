@@ -4,6 +4,7 @@ import networkx as nx
 import numpy as np
 from datetime import datetime
 
+
 def truncated_power_law(gamma, k_0, n, rng, size=None):
     """
     Generate a sample of size *size* from a power law distribution
@@ -25,14 +26,14 @@ def truncated_power_law(gamma, k_0, n, rng, size=None):
     )
 
 
-def powerlaw_partition(gamma, k_0, C, N, rng):
-    sizes = truncated_power_law(gamma,k_0,N/2,rng,size=C)
-    sizes = (N * sizes / sizes.sum()).astype(int) 
+def proportional_partition(props, N):
+    sizes = (N * props).astype(int)
     
     # adjust for any count lost in rounding
     diff = N - sizes.sum()
-    sizes[0] += diff
-    
+    for i in range(diff):
+        sizes[i] += 1
+
     return sizes
 
 
@@ -122,8 +123,7 @@ def generate_dc_sbm(B, theta, Z, N, rng):
 def run_simulation(
     N, 
     C, 
-    gamma, 
-    k_0, 
+    props, 
     n_trials, 
     pr_in, 
     pr_out, 
@@ -136,7 +136,7 @@ def run_simulation(
     # Z is block membership matrix
     Z = np.zeros((N, C), dtype=int)
 
-    sizes = powerlaw_partition(gamma, k_0, C, N, rng)
+    sizes = proportional_partition(props, N)
     sizes.sort()
 
     thresholds = np.zeros(len(sizes) + 1, dtype=int)
@@ -229,25 +229,31 @@ def run_simulation(
 
 
 if __name__=="__main__":
-    Ns = [100,200,500,1000,5000]
+    Ns = [200,500,1000,5000]
     n_trials = 50
     C = 10 # number of blocks
-    gamma = 2.5 # coefficient for modified power law
+    gamma = 2.2 # coefficient for modified power law
     k_0 = 8 # minimum expected block size
     
     pr_big = 0.16 # probability of edge between same-group nodes
     pr_small = 0.05 # probability of edge between out-group nodes
 
     rng = np.random.default_rng(11235811)
+    
+    # compute the proportion on nodes in each community
+    # keep this fixed across network sizes
+    props = truncated_power_law(gamma,k_0,(Ns[0])/2,rng,size=C)
+    props = props / props.sum()
+    props.sort()
 
     for N in Ns: 
         start = datetime.now()
-        run_simulation(N, C, gamma, k_0, n_trials, pr_big, pr_small, rng)
+        run_simulation(N, C, props, n_trials, pr_big, pr_small, rng)
         seconds = (datetime.now() - start).total_seconds()
         print(f"Ran simulation for N={N}, n_trials={n_trials} in {seconds} seconds.")
         
         start = datetime.now()
-        run_simulation(N, C, gamma, k_0, n_trials, pr_small, pr_big, rng)
+        run_simulation(N, C, props, n_trials, pr_small, pr_big, rng)
         seconds = (datetime.now() - start).total_seconds()
         print(f"Ran simulation for N={N}, n_trials={n_trials} in {seconds} seconds.")
 
