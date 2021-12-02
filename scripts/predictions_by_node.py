@@ -203,7 +203,9 @@ def run_simulation(
     cnts = df.block.value_counts().sort_index()
 
     plt.figure()
+    plt.scatter(cnts, predT, color="tab:orange",marker="X")
     plt.errorbar(cnts, means, stds,fmt="P")
+    plt.legend(["Predicted", "Observed"])
     plt.xlabel("Class Size")
     plt.ylabel("$r(\ell)$")
 
