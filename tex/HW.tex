@@ -16,7 +16,7 @@
 
 \twocolumn
 
-\title{Local Assortativity on Networks with Unbalanced Classes}
+\title{Local Assortativity in Networks with Unbalanced Classes}
 \author{Rebecca Cohen}
 
 \begin{document}
@@ -31,13 +31,38 @@ Peel et. al find considerable variation in $r_\ell$ on both random and empirical
 This paper will analyze the distribution of $r(\ell)$ with respect to class size.  We find that otherwise comparable nodes in larger classes tend to have higher $r(\ell)$ scores on both assortative and disassortative networks.  We develop a theoretical prediction of $r(\ell)$ based on a DC-SBM null model and use numerical experiments to validate its predictions.
 
 \section{Methods}
-To test the influence of class size on local assortativity, we use null models in which there is no fine-grained assortative structure and record how $r_\ell$ varies relative to class size.  This experimental setup considers two different null models, the Erdos-Renyi random graph, which has no assortatitive structure, and a simple stochastic block model (SBM) with equal in- and out-group pairing probabilities for all classes of nodes.  The Erdos-Renyi random graph 
+To test the influence of class size on local assortativity, we use null models in which there is no fine-grained assortative structure and record how $r_\ell$ varies relative to class size.  This experimental setup considers two different null models, the Erdos-Renyi random graph, which has no assortatitive structure, and a simple stochastic block model (SBM) with equal in- and out-group pairing probabilities for all classes of nodes.
 
-\section{Multiscale Mixing In Unbalanced Classes}
-Include simulations and real data
+The Erdos-Renyi random graphs in the experiment had $N=800$, $p=0.075$, while the SBM had $N=800$, with an in-group pairing probability of 0.1 and out-group pairing probability of 0.05.  On both models, nodes were assigned to one of two classes, with the size of the smaller class varying between 10 and 400 by units of 10.  For each choice class size, 20 trials were run on different random graphs and the mean $r_\ell$ was recorded for each class, as was the global assortativity.
+
+TODO: second experimental setup?
+TODO: real data?
+
+\section{Results}
+\subsection{Distribution of $r_\ell$ on Null Models}
+
+\begin{figure}
+  \includegraphics[width=0.5\textwidth]{erdos_renyi_{date_str}.png}
+  \includegraphics[width=0.5\textwidth]{unbalanced_sbm_2021_11_30_13_01.png}
+  \caption{Distribution of $r(\ell)$ on Erdos-Renyi random graphs (above) and SBM's below.  Error bars indicate the standard deviation of the mean $r(\ell)$ for each class between trials.}
+\end{figure}
 
 
-\section{Blockwise Expectation of Multiscale Mixing Scores Under DC-SBM}
+Figure 1 shows the results of the experiment.  On both null models, the larger class consistently had higher $r(\ell)$ scores than the smaller one.  The steep dropoff in $r(\ell)$ as the smaller class size decreases is striking in both experiments.  Neither network had disassortative structure, yet as the size of the smaller group approaches 0, $r(\ell)$ approaches $-\infty$.  The precipitous drop in score has to do with the normalization term.  Without loss of generality, suppose the largest group is group 1.  As the size of group 1 approaches the entire dataset, $a_1 \to 1$, so
+\begin{equation}
+  Q_\text{max} = 1 - \sum_g a_g^2 \to 1 - 1 = 0 
+\end{equation}
+
+The normalization term explains the magnitude of the decline in $r_\ell$, but to understand why it is negative to begin with we must consider what happens to $e_{gg}(\ell)$ as class sizes become increasingly unbalanced.  Consider a node $\ell$ in group 1, the larger group.  TotalRank will assign a higher weight to node $\ell$ than to any other node, thus edges connecting node $\ell$ to other nodes in group 1 will be given the most weight in $e_{11}(\ell)$, leading to a higher proportion of in-group edges than expected even when there is no assortative structure.  Internal edges in group 2 will be given weight less than $a_2^2$ but these are a smaller fraction of the network so this different will be outweighted by the results from group 1.
+
+Conversely, if we take $\ell$ in group 2, the smaller group, then $e_{22}(\ell)$ will be greater than $a_2^2$, but this will be outweighed by the large defecit in $e_{11}$ as none of the top-weighted edges can be internal to group 1.
+
+Also worth noting here is that global assortativity scores depend on class size as well, reaching a maximum when classes have equal sizes.  While it is tempting to search for class-size correction that could be applied $r(\ell)$, the assumption that variation on modularity could be independent of class size may be misguided.  
+
+\subsection{Baseline $r(\ell)$ Scores}
+
+In order to draw conclusions about local differences in node pairing behaviors, we would like to be able to distinguish between variance in $r(\ell)$ due to class size vs. fine-grained differences in behavior.  
+
 The multiscale mixing score $r(\ell)$ is defined
 \begin{equation}
   r(\ell) = \frac{1}{Q_{max}} \sum_g (e_{gg}(\ell) - a_g^2)
