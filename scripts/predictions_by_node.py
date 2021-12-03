@@ -187,6 +187,7 @@ def run_simulation(
         except:
             continue
     
+    # calculate local assortativity
     _, assortT, _ = localAssortF(E,M)
 
     scores = []
@@ -198,6 +199,8 @@ def run_simulation(
     df = pd.DataFrame(assortT.T, columns=["assortT"])
     df["block"] = pd.Series(df.index).apply(lambda x: np.where(thresholds <= x)[0][-1])
 
+    # plot the distribution of local assortativity
+    # within each block vs. block size
     means = df.groupby("block").assortT.mean()
     stds = df.groupby("block").assortT.std()
     cnts = df.block.value_counts().sort_index()
@@ -219,6 +222,22 @@ def run_simulation(
     plt.title(title)
     plt.savefig(fname)
     print(f"Saved figure {title}")
+
+    # plot the distribution of local assortativiity scores
+    # within a single block
+    print("Plotting block 9")
+    plt.figure()
+    df[df.block==9].assortT.plot(kind='hist')
+    plt.xlabel("$r_\ell$")
+    plt.title(f"Block 9 $r_\ell$: N={N}")
+
+    # plot predicted value
+    ymax = plt.gca().get_ylim()[1]
+    plt.plot([predT[9], predT[9]], [0, ymax], "--")
+    plt.legend(["Predicted", "Observed"])
+
+    fname = fname[:-4] + "block_9.png"
+    plt.savefig(fname)
 
 
 if __name__=="__main__":
