@@ -22,29 +22,53 @@
 \begin{document}
 \maketitle
 \section{Introduction}
-Assortativity and its limitations
 
-Multiscale mixing -- include PPR and TotalRank
+In many network datasets, edges may be more, or less, frequent between pairs of nodes that share a common attribute.  To measure this tendancy on a network with a discrete attributes, we use the normalized modularity score
+ \begin{equation}
+   r = \frac{Q}{Q_{max}} = \frac{\sum_g e_{gg} - \sum_g a_g^2} {1 - \sum_g a_g^2}
+ \end{equation} \cite{newman:2003}
+ 
+ where $e_{gg}$ is the fraction of edges that connect nodes of class $g$, and $a_g$ is the fraction of edges attached on either side to nodes of class $g$.  This statistic provides a global summary of the relation between edges and attribute values across the network.  
+ 
+However, this metric will not capture the variation that occurs within the network.  To capture a more nuanced representation of the assortative behavior in the neighborhood of a fixed node $i$, Peel et al. have proposed a local assortativity measure
+
+\begin{equation}
+  r_\ell = \frac{1}{Q_{max}} \sum_g (e_{gg}(\ell) - a_g^2)
+\end{equation}
+
+where $e_{gg}(\ell)$ is the fraction of edges connecting nodes in class $g$, weighted by the importance of each endpoint in the neighborhood of $\ell$.  
+
+Personalized PageRank is a popular measure of local node importance in which $w_\alpha(i; \ell)$ is the stationary probability that a random walker beginning at $\ell$ will be at $i$, assuming they teleport back to $\ell$ with probability $1-\alpha$.  When $\alpha$ is close to 0, the bulk of weight is in the immediate neighborhood of $\ell$, while values closer to 1 produce something closer to the global assortativity.  To summarize the behavior across multiple scales, we use the TotalRank
+
+\begin{equation}
+  w_{multi}(i; \ell) = \int_0^1 w_\alpha(i; \ell) d\alpha
+\end{equation} \cite{boldi:2005} \cite{Peel:2018}
+
+and define
+\begin{equation}
+  e_{gg}(\ell) = \sum_{i: z_i \in g} \sum_{j: z_j \in g} w_{multi}(i; \ell) \frac{\mathbf{A}_{ij}}{k_i}
+\end{equation} \cite{Peel:2018}
+
+where $\mathbf{A}$ is the adjacency matrix, $\vec{k}$ is the degree vector, and $\vec{z}$ is the attribute vector.
 
 Peel et. al find considerable variation in $r_\ell$ on both random and empirical networks.  However, it is not obvious whether local differences in assortativity are the result of differences in the probability of nodes forming in-group vs. out-group edges, or whether there may be other factors that influence the distribution of $r(\ell)$.
 
 This paper will analyze the distribution of $r(\ell)$ with respect to class size.  We find that otherwise comparable nodes in larger classes tend to have higher $r(\ell)$ scores on both assortative and disassortative networks.  We develop a theoretical prediction of $r(\ell)$ based on a DC-SBM null model and use numerical experiments to validate its predictions.
 
 \section{Methods}
-To test the influence of class size on local assortativity, we use null models in which there is no fine-grained assortative structure and record how $r_\ell$ varies relative to class size.  This experimental setup considers two different null models, the Erdos-Renyi random graph, which has no assortatitive structure, and a simple stochastic block model (SBM) with equal in- and out-group pairing probabilities for all classes of nodes.
+To test the influence of class size on local assortativity, we use random graphs in which there is no fine-grained assortative structure and record how $r_\ell$ varies relative to class size.  This experimental setup considers two different null models, the Erdos-Renyi random graph, which has no assortatitive structure, and a simple stochastic block model (SBM) with equal in- and out-group pairing probabilities for all classes of nodes.
 
-The Erdos-Renyi random graphs in the experiment had $N=800$, $p=0.075$, while the SBM had $N=800$, with an in-group pairing probability of 0.1 and out-group pairing probability of 0.05.  On both models, nodes were assigned to one of two classes, with the size of the smaller class varying between 10 and 400 by units of 10.  For each choice class size, 20 trials were run on different random graphs and the mean $r_\ell$ was recorded for each class, as was the global assortativity.
+The Erdos-Renyi random graphs in this experiment had $N=800$, $p=0.075$, while the SBM had 2 blocks of varying sizes, with $N=800$, with an in-group pairing probability of 0.1 and out-group pairing probability of 0.05.  On both models, nodes were assigned to one of two classes, with the size of the smaller class varying between 10 and 400 by units of 10.  For each choice class size, 20 trials were run on different random graphs and the mean $r_\ell$ was recorded for each class, as was the global assortativity.
 
-TODO: second experimental setup?
-TODO: real data?
+We then derive an estimate of the expectation of $r_\ell$ on a network with global assortative structure but no fine-grained variation within each class.  To test the estimates, we fix the proportional sizes of 10 classes as well as in-group and out-group pairing probabilities.  For varying sizes of network, we generate 50 DC-SBM random networks and compare the mean $r_\ell$ values within each class with the estimate.  We also examine the distribution of $r_\ell$ within each class.  
 
 \section{Results}
-\subsection{Distribution of $r_\ell$ on Null Models}
+\subsection{Distribution of $r_\ell$ on Random Graph Models}
 
 \begin{figure}
   \includegraphics[width=0.5\textwidth]{erdos_renyi_{date_str}.png}
   \includegraphics[width=0.5\textwidth]{unbalanced_sbm_2021_11_30_13_01.png}
-  \caption{Distribution of $r(\ell)$ on Erdos-Renyi random graphs (above) and SBM's below.  Error bars indicate the standard deviation of the mean $r(\ell)$ for each class between trials.}
+  \caption{Distribution of $r(\ell)$ on Erdos-Renyi random graphs (top) and SBM's (bottom).  Error bars indicate the standard deviation of the mean $r(\ell)$ for each class between trials.}
 \end{figure}
 
 
@@ -143,7 +167,7 @@ For these experiments, we select a heterogeneous distribution of block sizes and
 \includegraphics[width=0.5\textwidth]{disassortative_N_500.png}
 \includegraphics[width=0.5\textwidth]{assortative_N_5000.png}
 \includegraphics[width=0.5\textwidth]{disassortative_N_5000.png}
-\caption{Distribution of $r(\ell)$ on DC-SBM random networks with uneven class sizes and heavy-tailed degree distribution.  Networks are constructed to have similar proportions within each class and similar in- and out-group pairing probabilities.  Errorbars show the standard deviation within each class}
+\caption{Distribution of $r(\ell)$ on DC-SBM random networks.  Errorbars show the standard deviation within each class}
 \end{figure}
 
 Figure NUMBER shows the distribution of $r_\ell$ within each class on a single DC-SBM for both assortatiive and disassortatiive nettworks.  Mean scores appear close to the theoretical prediction and the standard deviation decreases as the size of the network grows.  These networks were constructed in such a way that larger networks had higher mean degree, which decreases the impact of random fluctuations due to a small number of edges.  
@@ -153,7 +177,7 @@ Figure NUMBER shows the distribution of $r_\ell$ within each class on a single D
 \includegraphics[width=0.5\textwidth]{assortative_N_5000_trials_50.png}
 \includegraphics[width=0.5\textwidth]{disassortative_N_500_trials_50.png}
 \includegraphics[width=0.5\textwidth]{disassortative_N_5000_trials_50.png}
-\caption{Classwise mean $r(\ell)$ across 50 trials on DC-SBM random networks with identical parameters}
+\caption{Classwise mean $r(\ell)$ across 50 DC-SBM random networks}
 \end{figure}
 
 In figure NUMBER we consider the same unbalanced partition of classes, but compare the classwise mean of $r(\ell)$ scores across 50 different random networks generated from the same parameters.  Once again, $r(\ell)$ values appear to be centered around the theoretical prediction, and variance decreases as $n$ grows.  At $N=1000$ we begin to see the magnitude of the error in our theoretical analysis as the observed distribution converges.  It appears that the theoretical prediction slight underestimates $r(\ell)$ on small classes and overestimates it on large classes, for both assortative and disassortative and disassortative networks.
