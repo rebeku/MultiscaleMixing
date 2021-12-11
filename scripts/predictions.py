@@ -54,16 +54,21 @@ def predict_msm_block(B, Z, pr, N, C):
         C x 1 array of expected multiscale assortattivities for each block.
         predT[C] is the expected multiscale assortativity for community C
     """
-    D = np.diag(B.sum(axis=0))
-    P = np.linalg.inv(D) @ B
+    D = np.diag(B.sum(axis=0)) # blockwise degree matrix
+    P = np.linalg.inv(D) @ B # blockwise transition matriix
     
-    ar2 = (B.sum(axis=0) / B.sum())**2
+    ar2 = (B.sum(axis=0) / B.sum())**2 # a_r^2 from modularity definition
     qmax = 1 - ar2.sum()
     
-    predM = np.zeros((C, len(pr)))
-    predT = np.zeros((C,1))
+    # initially, we save e_{gg}(\ell) in these arrays
+    # later, we will update with r_ell
+    predM = np.zeros((C, len(pr))) # values for each alpha
+    predT = np.zeros((C,1)) # values with alpha integrated out
 
     for i in range(C):
+        # u will be True for each member of community *i*
+        # we use this mask to determine where to save
+        # the results for each community
         u = np.where(Z[:,i]==1)[0][0]
         
         for j, alpha in enumerate((1-pr)):
@@ -78,14 +83,17 @@ def predict_msm_block(B, Z, pr, N, C):
             
             # compute multiscale mixing from PPR
             eggl = p * np.diag(B)/ B.sum(axis=0)
-            predM[i,j] = (eggl.sum() - ar2.sum()) / qmax
+            predM[i,j] = eggl.sum()
             
             
     # use the trapezoid rule to estimate predT
     delta = (pr - np.roll(pr,1))[1:]
-
     traps = (predM + np.roll(predM, 1))[:,1:] / 2
     predT = (traps * delta).sum(axis=1) / pr.max()
+
+    # compute r_local
+    predM = (predM - ar2.sum()) / qmax
+    predT = (predT - ar2.sum()) / qmax
     return predM, predT
             
     
