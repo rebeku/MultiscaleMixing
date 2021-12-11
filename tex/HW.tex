@@ -38,7 +38,7 @@ However, this metric will not capture the variation that occurs within the netwo
 
 where $e_{gg}(\ell)$ is the fraction of edges connecting nodes in class $g$, weighted by the importance of each endpoint in the neighborhood of $\ell$.  
 
-Personalized PageRank is a popular measure of local node importance in which $w_\alpha(i; \ell)$ is the stationary probability that a random walker beginning at $\ell$ will be at $i$, assuming they teleport back to $\ell$ with probability $1-\alpha$.  Some sources reverse the roles of $\alpha$ and $1 - \alpha$ \cite{chen:2020}, but this paper will follow the convention used by Peel et al \cite{Peel:2018}.  When $\alpha$ is close to 0, the bulk of weight is in the immediate neighborhood of $\ell$, while values closer to 1 produce something closer to the global assortativity.  More formally, the personalized PageRank vector $\vec{w}_\alpha$ is the unique solution to
+Personalized PageRank is a popular measure of local node importance in which $w_\alpha(i; \ell)$ is the stationary probability that a random walker beginning at $\ell$ will be at $i$, assuming they teleport back to $\ell$ with probability $1-\alpha$.  Some publications reverse the roles of $\alpha$ and $1 - \alpha$ \cite{chen:2020}, but this paper will follow the convention used by Peel et al \cite{Peel:2018}.  When $\alpha$ is close to 0, the bulk of weight is in the immediate neighborhood of $\ell$, while values closer to 1 produce something closer to the global assortativity.  More formally, the personalized PageRank vector $\vec{w}_\alpha$ is the unique solution to
 \begin{equation}
   \vec{w}_\alpha^T = (1 - \alpha) \vec{\pi}^T + \alpha \vec{w}_\alpha^T \mathbf{P}
 \end{equation}
@@ -67,7 +67,9 @@ We can test the influence of class size on local assortativity, using random gra
 
 The Erdos-Renyi random graphs in this experiment had $N=800$, $p=0.075$, while the SBM had 2 blocks of varying sizes, with $N=800$, with an in-group pairing probability of 0.1 and out-group pairing probability of 0.05.  On both models, nodes were assigned to one of two classes, with the size of the smaller class varying between 10 and 400 by units of 10.  For each choice class size, 20 trials were run on different random graphs and the mean $r_\ell$ was recorded for each class, as was the global assortativity.
 
-We then derive an estimate of the expectation of $r_\ell$ on a network with global assortative structure but no fine-grained variation within each class.  To test the estimates, we fix the proportional sizes of 10 classes as well as in-group and out-group pairing probabilities.  For varying sizes of network, we generate 50 DC-SBM random networks and compare the mean $r_\ell$ values within each class with the estimate.  We also examine the distribution of $r_\ell$ within each class.  
+We then derive an estimate of the expectation of $r_\ell$ on a network with global assortative structure but no fine-grained variation within each class.  
+
+To test the estimates, we fix the proportional sizes of 10 classes as well as in-group and out-group pairing probabilities.  For varying sizes of network, we generate 50 DC-SBM random networks and compare the mean $r_\ell$ values within each class with the estimate.  Examining the mean over many trials allows us to evaluate any bias in our prediction.  We also examine the distribution of $r_\ell$ within each class to get a sense of the variance of $r_\ell$ in the absense of fine-grained assortative structure.
 
 \section{Results}
 \subsection{Class Size and Local Assortativity}
@@ -87,7 +89,15 @@ The normalization term explains the magnitude of the decline in $r_\ell$, but to
 
 Conversely, if we take $\ell$ in group 2, the smaller group, then $e_{22}(\ell)$ will be greater than $a_2^2$, but this will be outweighed by the large defecit in $e_{11}$ as none of the top-weighted edges can be internal to group 1.
 
-We can see from the SBM experiment that global, as well as local, assortativity scores depend on class size, reaching a maximum when classes have equal sizes.  While it is tempting to search for class-size correction that could be applied $r(\ell)$, the assumption that a variation on modularity could be independent of class size may be misguided.
+\subsection{A Brief Discussion of Modularity}
+
+We can see from the SBM experiment that global, as well as local, assortativity scores depend on class size, reaching a maximum when classes have equal sizes.  
+
+The modularity score's sensitivity to class size has been a major issue in the field of community detection \cite{Fortunato36}.  When using modularity maximization to identify community structure, a popular solution is to use a resolution parameter to adjust the relative weight on $a_g^2$ vs. $e_{gg}$ \cite{newman:2016}.  Since the odd behavior of $r_\ell$ on small classes is also related to the tradeoff between $a_g^2$ and $e_{gg}(\ell)$, introducing a resolution parameter into $r_\ell$ could mitigate this behavior.
+
+When using local assortativity as an intermediate step in a community detection, node classification, or link prediction algorithm, it could be useful to introduce an resolution parameter into the algorithm.  However, when working with the distribution of $r_\ell$ to describe or understand a dataset, introducing a resolution parameter compromises interpretability, as the sign of the resulting score becomes sensitive to another factor outside of the in- vs. out-group pairing probabilities.
+
+While it is tempting to search for class-size correction that could be applied $r(\ell)$, the assumption that a variation on modularity could be independent of class size may be misguided.
 
 \subsection{Baseline Local Assortativity}
 
@@ -186,46 +196,71 @@ Substituting the expection of $\langle e_{gg}(\ell)\rangle$ back into equation N
 
 Equation NUMBER depends only on the mixing matrix and blockwise PPR vector.  This means that $\langle r(\ell) \rangle$ will be the same for every element of each block, regardless of its degree.  It also means that we can compute $\langle r(\ell) \rangle$ directly from the mixing matrix.
 
-\section{Numerical Experiments}
+\subsection{Testing the Estimated Local Assortativity}
 The calculation above relied on some highly unrealistic but conveninent assumptions about the DC-SBM.  To test how well these predictions work in practice, we generate networks using a DC-SBM and compare the distribution $r_\ell$ scores with the theoretical prediction from equation NUMBER.
 
-For these experiments, we select a heterogeneous distribution of block sizes and degree distributions.  We keep the ratios of block sizes roughly fixed between trials, with adjustments to account for rounding.  We generate both assortative and disassortative networks, keeping in-group and out-group probability of an edge existing constant between classes, so the only structural difference between different classes is the size of the class. 
 
-\begin{figure}[h!]
-\includegraphics[width=0.5\textwidth]{assortative_N_500.png}
-\includegraphics[width=0.5\textwidth]{disassortative_N_500.png}
-\includegraphics[width=0.5\textwidth]{assortative_N_5000.png}
-\includegraphics[width=0.5\textwidth]{disassortative_N_5000.png}
-\caption{Distribution of $r(\ell)$ on DC-SBM random networks.  Errorbars show the standard deviation within each class}
-\end{figure}
-
-Figure NUMBER shows the distribution of $r_\ell$ within each class on a single DC-SBM for both assortatiive and disassortatiive nettworks.  Mean scores appear close to the theoretical prediction and the standard deviation decreases as the size of the network grows.  These networks were constructed in such a way that larger networks had higher mean degree, which decreases the impact of random fluctuations due to a small number of edges.  
+Figure NUMBER shows the classwise mean of $r(\ell)$ scores across 50 different random networks generated from the same parameters, across assortative DC-SBM networks of varying sizes.  The mean $r_\ell$ scores for each class appear to be clustered around our prediction.  
 
 \begin{figure}[h!]
 \includegraphics[width=0.5\textwidth]{assortative_N_500_trials_50.png}
+\includegraphics[width=0.5\textwidth]{assortative_N_1000_trials_50.png}
 \includegraphics[width=0.5\textwidth]{assortative_N_5000_trials_50.png}
-\includegraphics[width=0.5\textwidth]{disassortative_N_500_trials_50.png}
-\includegraphics[width=0.5\textwidth]{disassortative_N_5000_trials_50.png}
-\caption{Classwise mean $r(\ell)$ across 50 DC-SBM random networks}
+\caption{Classwise mean $r(\ell)$ across 50 assortative DC-SBM random networks}
 \end{figure}
 
-In figure NUMBER we consider the same unbalanced partition of classes, but compare the classwise mean of $r(\ell)$ scores across 50 different random networks generated from the same parameters.  Once again, $r(\ell)$ values appear to be centered around the theoretical prediction, and variance decreases as $n$ grows.  At $N=1000$ we begin to see the magnitude of the error in our theoretical analysis as the observed distribution converges.  It appears that the theoretical prediction slight underestimates $r(\ell)$ on small classes and overestimates it on large classes, for both assortative and disassortative and disassortative networks.
+As the network grows larger and error bars shrink, we see a slight bias in the predictions, with the smallest classes having observed scores above the predicted value, and the largest classes below.  In figure NUMBER, we see virtually the same pattern on disassortative random networks. 
 
 \begin{figure}[h!]
-\includegraphics[width=0.5\textwidth]{assortative_N_500block_9.png}
+\includegraphics[width=0.5\textwidth]{disassortative_N_500_trials_50.png}
+\includegraphics[width=0.5\textwidth]{disassortative_N_1000_trials_50.png}
+\includegraphics[width=0.5\textwidth]{disassortative_N_5000_trials_50.png}
+\caption{Classwise mean $r(\ell)$ across 50 disassortative DC-SBM random networks}
+\end{figure}
+
+Figure NUMBER shows the distribution of $r(\ell)$ within each class on one random network.  There does not appear to be a strong relationship between class size and intra-block variation.  Blocks of similar sizes have heavily overlappinig score distributions but the distance scores in less similar blocks is far greater than the standard deviation within each block.   
+
+\begin{figure}[h!]
+\includegraphics[width=0.5\textwidth]{assortative_N_5000.png}
+\includegraphics[width=0.5\textwidth]{disassortative_N_5000.png}
+\caption{Distribution of $r(\ell)$ within each class on a fixed random network}
+\end{figure}
+
+In figure NUMBER we take a closer look at the distribution of $r_\ell$ within a single class of a single random network.  The distribution appears to be centered around the theoretical prediction.  It is unimodal, fairly symmetric and not very heavy-tailed, appearing similar in shape to a Poisson distribution, although it is, of course a continuous distribution over real-valued outcomes.
+
+\begin{figure}[h!]
 \includegraphics[width=0.5\textwidth]{assortative_N_5000block_9.png}
-\includegraphics[width=0.5\textwidth]{disassortative_N_500block_9.png}
 \includegraphics[width=0.5\textwidth]{disassortative_N_5000block_9.png}
 \caption{Distribution of $r(\ell)$ within one block of DC-SBM}
 \end{figure}
 
-In figure NUMBER we take a closer look at the distribution of $r_\ell$ within a single class of a single random network.  The distribution appears to be centered around the theoretical prediction.  It is unimodal, fairly symmetric and not very heavy-tailed, appearing similar in shape to a Poisson distribution.
 
 \section{Discussion}
 
+Class size has a dramatic impact on the local assortativity score.  On datasets with unbalanced classes, local assortativity may take on a multimodal distribution even in the absence of localized variations in pairing behavior.  However, this statistic also captures meaningful variation across different regions of large networks that could be difficult to identify with other measurements \cite{Peel:2018}.
+
+When using this local assortativity score in data analysis, it is helpful just to be aware that these scores are biased in favor of larger classes.  Plotting the distribution of local assortativity within each class, as in figures NUMBER and NUMBER may help give a wholistic sense of whether there is fine-grained variation in assortative mixing or not.
+
+TODO: Wellesley?
+
+Equation 15 provides a more quantitative tool for evaluating whether a distribution of $r_\ell$ scores is indicative of interesting structure or merely an artifact of class size.  Analyzing $\delta_\ell = r_\ell - \langle r_\ell \rangle$ may be particularly helpful, as the DC-SBM will produce a unimodal distribution of $\delta_\ell$, so a multimodal distribution on an empirical dataset would provide compelling evidence of a genuine variation in mixing patterns.
+
+If $\delta_\ell$ is a more robust metric than $r_\ell$, why not just use $\delta_\ell$ in place of $r_\ell$?  Its lack of interpretability is a drawback, as the sign of the score is no longer related to whether mixing patterns in the neighborhood are assortative or disassortative.  For example, a node in an assortative neighborhood may have a negative score if the preference for in-group edges is simply weaker than in other parts of the network.  Thus, $r_\ell$ and $\delta_\ell$ provide complementary information. 
+
+It is worth questioning whether there is a better approach to characterizing local mixing patterns.  We could reject modularity altogether and find a different way of measuring the tendency toward assortative mixing.  For example, we could use a metric based on the pairing probabilities for individual nodes within each class.  The technique of using TotalRank to assign weights to each neighborhood could still apply.
+
+It would also be useful to deepen our theoretical understanding of the behavior of $r_\ell$.  While the expectation of $r_\ell$ on a DC-SBM model is formally undefined, developing a set of probabilistic bounds on the error introduced in our calculation would help us to understand when this approximation is useful.  In addition, if we could develop an approximation of the distribution of $r_\ell$, and not simply its expectation, this would open the door for the development of hypothesis testing.  These tests would give researchers a more powerful tool with which to evaluate the presence or absence of intra-group variations in assortative mixing.
+
+\appendix
 \bibliographystyle{plain} % We choose the "plain" reference style
 \bibliography{refs} % Entries are in the refs.bib file
+\onecolumn
+\section{Supplemental Plots}
+\section{Code}
 
-\section*{Code}
+\lstinputlisting[language=Python]{../scripts/descriptions.py}
+\lstinputlisting[language=Python]{../scripts/descriptions_gnp.py}
+\lstinputlisting[language=Python]{../scripts/predictions.py}
+\lstinputlisting[language=Python]{../scripts/predictions_by_node.py}
 
 \end{document}
